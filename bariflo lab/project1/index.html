@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Current Location and Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Style for the map box */
+        .map-box {
+            display: flex; /* Use flexbox to place items side by side */
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style for the map container */
+        #map-container {
+            height: 700px;
+            width: 70%; /* Adjust width of the map */
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Style for the message box */
+        .message-box {
+            height: 700px; /* Match height of the map */
+            width: 30%; /* Width of the message box */
+            background-color: rgba(255, 255, 255, 0.8); /* Slight transparency */
+            padding: 10px;
+            box-shadow: -3px 3px 10px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* Header styles for the message box */
+        .message-box-header {
+            display: flex; /* Use flexbox for header layout */
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        /* Header item styles */
+        .header-item {
+            font-weight: bold;
+            flex: 2; /* Make all items equal width */
+            text-align: center;
+            padding: 20px,10px; /* Add padding for better spacing */
+            color: rgb(77, 67, 67); /* Text color for better contrast */
+          
+        }
+
+        /* Background colors for header items */
+        .header-item:nth-child(1) { background-color: #0dcef9; } 
+        .header-item:nth-child(2) { background-color: #f89df5; } 
+        .header-item:nth-child(3) { background-color: #ecd60b; } 
+        .header-item:nth-child(4) { background-color: #FF33A8; } 
+
+        /* Message input field */
+        .message-input {
+            width: 100%;
+            height: 400px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: #888;
+        }
+
+        /* Style for the container holding the search bars and icons */
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Align icons to the left */
+        .icon-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Style for the input wrapper to hold the search bar */
+        .input-wrapper {
+            position: relative;
+            width: 48%;
+        }
+
+        /* Style for the input boxes */
+        .search-boxes {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            width: 30%;
+        }
+
+        /* Style for the search bars */
+        .search-bar {
+            width: 100%;
+            padding: 10px 40px 10px 10px; /* Extra padding on the right for the icon */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Style for the icons inside the search bars */
+        .input-wrapper .icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #888;
+        }
+
+        /* Style for the icons container on the left */
+        .icon {
+            font-size: 24px;
+            color: #888;
+        }
+
+        /* Style for the MULTIBOT text */
+        .multibot-title {
+            background-image: linear-gradient(45deg, yellow, orange);
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container for the search bars and icons -->
+    <div class="search-container">
+        <!-- Icon container for settings and battery, aligned left -->
+        <div class="icon-container">
+            <i class="fas fa-cog icon"></i>
+            <i class="fas fa-battery-full icon"></i>
+            <i class="fas fa-wrench icon"></i>
+            <i class="fas fa-exclamation-circle icon"></i>
+        </div>
+
+        <!-- MULTIBOT title in the center -->
+        <div>
+            <h1 class="multibot-title">MULTIBOT</h1>
+        </div>
+
+        <!-- Search bars aligned right -->
+        <div class="search-boxes">
+            <!-- First search bar -->
+            <div class="input-wrapper">
+                <input type="text" id="location1" class="search-bar" placeholder="Search Location 1">
+            </div>
+
+            <!-- Second search bar -->
+            <div class="input-wrapper">
+                <input type="text" id="location2" class="search-bar" placeholder="Search Location 2">
+            </div>
+        </div>
+    </div>
+
+    <!-- Map box wrapper -->
+    <div class="map-box">
+        <!-- Map container -->
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+
+        <!-- Message box on the right side of the map -->
+        <div class="message-box">
+            <!-- Message box header -->
+            <div class="message-box-header">
+                <div class="header-item">Quick</div>
+                <div class="header-item">Message</div>
+                <div class="header-item">Action</div>
+                <div class="header-item">Static</div>
+            </div>
+            <textarea class="message-input" rows="8" placeholder="    "></textarea>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

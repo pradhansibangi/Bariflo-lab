@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Current Location and Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .icon-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 48%;
+        }
+
+        .search-boxes {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            width: 30%;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px 40px 10px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #ddd;
+            color: black;
+        }
+
+        .icon {
+            font-size: 24px;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .multibot-title {
+            background-image: linear-gradient(45deg, yellow, orange);
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 60px);
+        }
+
+        .message-container {
+            flex: 1;
+            padding: 20px;
+            background-color: #444;
+            height: 100%;
+            width: 100%;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .user-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .user-card {
+            background-color: #fff;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: calc(33.33% - 20px);
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .user-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: none;
+            background-color: #666;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .button {
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .view-posts-button {
+            background-color: blue;
+        }
+
+        .close-button {
+            background-color: red;
+        }
+        .view-albums-button{
+            background-color: green;
+        }
+
+        .albums-container {
+            margin-top: 20px;
+        }
+
+        .album {
+            background-color: #fff;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .album h4 {
+            margin: 0 0 5px 0;
+        }
+
+        .album p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <div class="icon-container">
+            <i class="fas fa-cog icon" id="settings-icon"></i>
+            <i class="fas fa-battery-full icon"></i>
+            <i class="fas fa-wrench icon"></i>
+            <i class="fas fa-exclamation-circle icon"></i>
+        </div>
+
+        <div>
+            <h1 class="multibot-title">MULTIBOT</h1>
+        </div>
+
+        <div class="search-boxes">
+            <div class="input-wrapper">
+                <input type="text" id="location1" class="search-bar" placeholder=" ">
+            </div>
+
+            <div class="input-wrapper">
+                <input type="text" id="location2" class="search-bar" placeholder=" ">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="message-container">
+            <div class="message-box-header">
+                <h2>Users</h2>
+            </div>
+            <div id="user-cards-container" class="user-cards-container" style="display: none;"></div>
+            <div id="user-details" class="user-details"></div>
+            <div id="posts-container" class="posts-container" style="display: none;"></div>
+            <div id="albums-container" class="albums-container" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const settingsIcon = document.getElementById('settings-icon');
+
+        const usersData = [
+            { "id": 1, "name": "Leanne Graham", "username": "Bret", "email": "Sincere@april.biz", "address": { "geo": { "lat": "-37.3159", "lng": "81.1496" } }, "phone": "1-770-736-8031 x56442", "company": { "name": "Romaguera-Crona" } },
+            { "id": 2, "name": "Ervin Howell", "username": "Antonette", "email": "Shanna@melissa.tv", "address": { "geo": { "lat": "-43.9509", "lng": "-34.4618" } }, "phone": "010-692-6593 x09125", "company": { "name": "Deckow-Crist" } },
+            { "id": 3, "name": "Clementine Bauch", "username": "Samantha", "email": "Nathan@yesenia.net", "address": { "geo": { "lat": "-68.6102", "lng": "-47.0653" } }, "phone": "1-463-123-4447", "company": { "name": "Romaguera-Jacobson" } },
+            { "id": 4, "name": "Patricia Lebsack", "username": "Karianne", "email": "Julianne.OConner@kory.org", "address": { "geo": { "lat": "29.4572", "lng": "-164.2990" } }, "phone": "493-170-9623 x156", "company": { "name": "Robel-Corkery" } },
+            { "id": 5, "name": "Chelsey Dietrich", "username": "Kamren", "email": "Lucio_Hettinger@annie.ca", "address": { "geo": { "lat": "-31.8129", "lng": "62.5342" } }, "phone": "(254)954-1289", "company": { "name": "Keebler LLC" } },
+            { "id": 6, "name": "Mrs. Dennis Schulist", "username": "Leopoldo_Corkery", "email": "Karley_Dach@jasper.info", "address": { "geo": { "lat": "-71.4197", "lng": "71.7478" } }, "phone": "1-477-935-8478 x6430", "company": { "name": "Considine-Lockman" } },
+            { "id": 7, "name": "Kurtis Weissnat", "username": "Elwyn.Skiles", "email": "Telly.Hoeger@billy.biz", "address": { "geo": { "lat": "24.8918", "lng": "21.8984" } }, "phone": "210.067.6132", "company": { "name": "Johns Group" } },
+            { "id": 8, "name": "Nicholas Runolfsdottir V", "username": "Maxime_Nienow", "email": "Sherwood@rosamond.me", "address": { "geo": { "lat": "-29.4572", "lng": "-164.2990" } }, "phone": "586-493-6943 x245", "company": { "name": "Abernathy Group" } },
+            { "id": 9, "name": "Glenna Reichert", "username": "Delphine", "email": "Chaim_McDermott@dana.io", "address": { "geo": { "lat": "-31.3355", "lng": "83.2242" } }, "phone": "(775)876-2002 x227", "company": { "name": "Department" } },
+            { "id": 10, "name": "Clementina DuBuque", "username": "Moriah.Stanton", "email": "Rey.Padberg@karina.biz", "address": { "geo": { "lat": "-37.3159", "lng": "81.1496" } }, "phone": "024-648-8888", "company": { "name": "Hauck" } }
+        ];
+
+        const albumsData = [
+            { "userId": 1, "id": 1, "title": "quidem molestiae enim" },
+            { "userId": 1, "id": 2, "title": "sunt qui excepturi placeat culpa" },
+            { "userId": 1, "id": 3, "title": "omnis laborum officia" },
+            { "userId": 2, "id": 4, "title": "non esse" },
+            { "userId": 2, "id": 5, "title": "nam qui" },
+            { "userId": 2, "id": 6, "title": "delectus aut autem" },
+            { "userId": 3, "id": 7, "title": "accusamus beatae ad facilis cum similique qui" },
+            { "userId": 3, "id": 8, "title": "reprehenderit est deserunt velit ipsam" },
+            { "userId": 3, "id": 9, "title": "officia porro iure quia iusto" },
+            { "userId": 4, "id": 10, "title": "culpa odio esse" }
+        ];
+
+        function initializeUserCards() {
+            const userCardsContainer = document.getElementById('user-cards-container');
+            usersData.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `<h3>${user.name}</h3><p>${user.username}</p>`;
+                userCard.onclick = () => showUserDetails(user);
+                userCardsContainer.appendChild(userCard);
+            });
+            userCardsContainer.style.display = 'flex';
+        }
+
+        function showUserDetails(user) {
+            const userDetails = document.getElementById('user-details');
+            const postsContainer = document.getElementById('posts-container');
+            const albumsContainer = document.getElementById('albums-container');
+            userDetails.innerHTML = `
+                <h3>${user.name}</h3>
+                <p>Email: ${user.email}</p>
+                <p>Phone: ${user.phone}</p>
+                <p>Company: ${user.company.name}</p>
+                <button class="button view-posts-button" onclick="showPosts(${user.id})">View Posts</button>
+                <button class="button view-albums-button" onclick="showAlbums(${user.id}) ">View Albums</button>
+                <button class="button close-button" onclick="closeUserDetails()">Close</button>
+            `;
+            userDetails.style.display = 'block';
+            postsContainer.style.display = 'none';
+            albumsContainer.style.display = 'none';
+        }
+
+        function closeUserDetails() {
+            const userDetails = document.getElementById('user-details');
+            userDetails.style.display = 'none';
+        }
+
+        function showPosts(userId) {
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.innerHTML = `<p>Posts for User ID ${userId} will be displayed here.</p>`;
+            postsContainer.style.display = 'block';
+        }
+
+        function showAlbums(userId) {
+            const albumsContainer = document.getElementById('albums-container');
+            const userAlbums = albumsData.filter(album => album.userId === userId);
+            albumsContainer.innerHTML = ''; // Clear existing content
+            userAlbums.forEach(album => {
+                const albumDiv = document.createElement('div');
+                albumDiv.className = 'album';
+                albumDiv.innerHTML = `<h4>${album.title}</h4>`;
+                albumsContainer.appendChild(albumDiv);
+            });
+            albumsContainer.style.display = 'block';
+        }
+
+        initializeUserCards();
+    </script>
+</body>
+</html>
